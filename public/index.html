@@ -13,8 +13,8 @@
         button:hover { background: #2980b9; }
         
         .expense-item { display: flex; justify-content: space-between; align-items: center; background: #f9f9f9; padding: 10px; margin: 5px 0; border-radius: 5px; border-left: 5px solid #e74c3c; }
-        .left-content { display: flex; align-items: center; }
         
+        /* Category Badges Styling */
         .badge { padding: 3px 8px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; color: white; margin-left: 10px; }
         .cat-Food { background-color: #f39c12; }
         .cat-Transport { background-color: #9b59b6; }
@@ -24,6 +24,7 @@
 
         .delete-btn { background: none; color: #95a5a6; border: none; padding: 0 5px; font-size: 1.2rem; cursor: pointer; }
         .delete-btn:hover { color: #c0392b; }
+        .left-content { display: flex; align-items: center; }
     </style>
 </head>
 <body>
@@ -53,32 +54,29 @@
     </div>
 
     <script>
+        // Fetch and show expenses when page loads or updates
         async function loadExpenses() {
-            try {
-                const response = await fetch('/api/expenses');
-                const data = await response.json(); 
-                
-                // This line will now successfully find the totalDisplay span element
-                document.getElementById('totalDisplay').innerText = data.total.toFixed(2);
+            const response = await fetch('/api/expenses');
+            const data = await response.json(); 
+            
+            document.getElementById('totalDisplay').innerText = data.total.toFixed(2);
 
-                const listDisplay = document.getElementById('expensesList');
-                listDisplay.innerHTML = data.list.map(exp => `
-                    <div class="expense-item">
-                        <div class="left-content">
-                            <strong>${exp.item}</strong>
-                            <span class="badge cat-${exp.category}">${exp.category}</span>
-                        </div>
-                        <div>
-                            <span style="margin-right: 15px;">$${exp.amount.toFixed(2)}</span>
-                            <button class="delete-btn" onclick="deleteExpense(${exp.id})">❌</button>
-                        </div>
+            const listDisplay = document.getElementById('expensesList');
+            listDisplay.innerHTML = data.list.map(exp => `
+                <div class="expense-item">
+                    <div class="left-content">
+                        <strong>${exp.item}</strong>
+                        <span class="badge cat-${exp.category}">${exp.category}</span>
                     </div>
-                `).join('');
-            } catch (err) {
-                console.error("Error loading expenses:", err);
-            }
+                    <div>
+                        <span style="margin-right: 15px;">$${exp.amount.toFixed(2)}</span>
+                        <button class="delete-btn" onclick="deleteExpense(${exp.id})">❌</button>
+                    </div>
+                </div>
+            `).join('');
         }
 
+        // Send a new expense to the backend
         async function addExpense() {
             const nameInput = document.getElementById('itemName');
             const amountInput = document.getElementById('itemAmount');
@@ -93,47 +91,41 @@
                 return;
             }
 
-            try {
-                const response = await fetch('/api/expenses', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        item: name,
-                        amount: parseFloat(amount),
-                        category: category
-                    })
-                });
+            const response = await fetch('/api/expenses', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    item: name,
+                    amount: parseFloat(amount),
+                    category: category
+                })
+            });
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    alert(text);
-                    return;
-                }
-
-                nameInput.value = '';
-                amountInput.value = '';
-                loadExpenses();
-            } catch (err) {
-                console.error("Error adding expense:", err);
+            if (!response.ok) {
+                const text = await response.text();
+                alert(text);
+                return;
             }
+
+            nameInput.value = '';
+            amountInput.value = '';
+            loadExpenses();
         }
 
+        // Delete an expense item via its unique ID
         async function deleteExpense(id) {
-            try {
-                const response = await fetch(`/api/expenses/${id}`, {
-                    method: 'DELETE'
-                });
+            const response = await fetch(`/api/expenses/${id}`, {
+                method: 'DELETE'
+            });
 
-                if (response.ok) {
-                    loadExpenses(); 
-                } else {
-                    alert('Failed to delete item.');
-                }
-            } catch (err) {
-                console.error("Error deleting expense:", err);
+            if (response.ok) {
+                loadExpenses(); // Reload the layout map
+            } else {
+                alert('Failed to delete item.');
             }
         }
 
+        // Initial fetch on application start
         loadExpenses();
     </script>
 </body>

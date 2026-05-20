@@ -1,1 +1,11 @@
-[]
+{
+  "list": [
+    {
+      "id": 1779306451689,
+      "item": "water",
+      "amount": 12,
+      "category": "Bills"
+    }
+  ],
+  "total": 12
+}
